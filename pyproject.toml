@@ -5,12 +5,8 @@ description = "Custom view plugin for SpikeInterfaceGUI"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "loadi",
     "pynapple>=0.10.1",
 ]
-
-[tool.uv.sources]
-loadi = { path = "../loadi" }
 
 [build-system]
 requires = ["setuptools>=62.0"]
