@@ -21,6 +21,7 @@ class RateMapView(ViewBase):
     _settings = [
             {'name': 'smooth_sigma', 'type': 'float', 'value': 0},
             {'name': 'bins', 'type': 'int', 'value': 40},
+            {'name': 'moving', 'type': 'float', 'value': 0}
         ]
     
     def _qt_make_layout(self):
@@ -59,6 +60,7 @@ class RateMapView(ViewBase):
 
         bins = self.settings['bins']
         smooth_sigma = self.settings['smooth_sigma']
+        moving = self.settings['moving']
 
         for i in range(n):
 
@@ -67,12 +69,25 @@ class RateMapView(ViewBase):
             spike_inds = self.controller.get_spike_indices(unit_id, segment_index=0)
             spikes = self.controller.spikes[spike_inds]['sample_index']/30_000
 
+            position_x = self.position['x']
+            position_y = self.position['y']
+
+            dx = np.diff(position_x)
+            dy = np.diff(position_y)
+            dt = np.diff(position_x.times())
+
+            speed = nap.Tsd(
+                        t=position_x.times()[1:],
+                        d=np.sqrt( (dx/dt)**2 + (dy/dt)**2),
+                    )
+            moving = speed.threshold(moving, method='above').time_support
+
             tuning_curve = nap.compute_tuning_curves(
                 nap.TsGroup([spikes]),
-                np.stack([self.position['x'], self.position['y']], axis=1),
+                np.stack([position_x, position_y], axis=1),
                 range=[(0, 100), (0, 100)],
                 bins=bins,
-                #epochs=session["moving"],
+                epochs=moving,
                 feature_names=["x", "y"],
             )
 
@@ -104,8 +119,6 @@ class RateMapView(ViewBase):
 
         from pynapple import Ts
         
-        print(f"{selected_inds=}")
-
         if len(selected_inds) > 0:
             self.estimated_position = self.position.interpolate(Ts([spike_sample_index/self.controller.sampling_frequency])).values[0]
 
