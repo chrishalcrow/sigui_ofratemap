@@ -3,7 +3,7 @@ name = "sigui_ofratemap"
 version = "0.1.0"
 description = "Custom view plugin for SpikeInterfaceGUI"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.10"
 dependencies = [
     "pynapple>=0.10.1",
 ]
